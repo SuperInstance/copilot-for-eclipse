@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <!-- Register our MCP server with Copilot for Eclipse -->
+   <extension
+         point="com.microsoft.copilot.eclipse.ui.mcpRegistration">
+      <provider
+            class="com.superinstance.constraint.copilot.ConstraintMcpProvider">
+      </provider>
+   </extension>
+</plugin>

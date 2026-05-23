@@ -41,6 +41,10 @@
 		<module>com.microsoft.copilot.eclipse.feature</module>
 		<module>com.microsoft.copilot.eclipse.repository</module>
 
+		<!-- constraint copilot plugin -->
+		<module>com.superinstance.constraint.copilot</module>
+		<module>com.superinstance.constraint.feature</module>
+
 		<!-- modules for tests -->
 		<module>com.microsoft.copilot.eclipse.core.test</module>
 		<module>com.microsoft.copilot.eclipse.ui.test</module>

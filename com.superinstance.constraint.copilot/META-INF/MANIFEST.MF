@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Constraint Theory MCP for Copilot
+Bundle-SymbolicName: com.superinstance.constraint.copilot;singleton:=true
+Bundle-Version: 0.1.0.qualifier
+Bundle-Vendor: SuperInstance
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Require-Bundle: com.microsoft.copilot.eclipse.ui
+Automatic-Module-Name: com.superinstance.constraint.copilot
