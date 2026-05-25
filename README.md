@@ -1,128 +1,138 @@
 # GitHub Copilot for Eclipse
 
-GitHub Copilot for Eclipse brings AI-assisted coding to the Eclipse IDE with these core capabilities:
+GitHub Copilot for Eclipse brings AI-assisted coding to the Eclipse IDE. This is a fork maintained by **SuperInstance** that adds Constraint Theory integration via MCP and a multi-model BYOK routing system.
 
-- **Code completions** for in-editor suggestions from code context or natural-language comments.
-- **Next Edit Suggestions** provide context-aware suggestions for your next code edits.
-- **Agent Mode** for conversational help and more autonomous, project-aware assistance.
-- **Model Context Protocol (MCP)** integration to connect Copilot with external tools and services.
-- **Advanced Agentic Capabilities** include Custom Agents, Isolated Subagents, and Plan Agent, with more agentic capabilities coming soon.
+## What This Fork Adds
 
-## Usage-based billing support
+### Constraint Theory MCP Server (`com.superinstance.constraint.copilot`)
 
-Starting from version **0.18.0**, we have added internal support for the upcoming [usage-based billing experience](https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/), including experience updates to the usage panel, usage notifications, and model picker. These changes will become visible once usage-based billing is rolled out.
+A bundled Eclipse plugin that registers a Python MCP (Model Context Protocol) server with Copilot. The server exposes 6 tools:
 
-To ensure compatibility with the new billing experience, we strongly recommend upgrading the plugin to **0.18.0 or later** as soon as possible.
+| Tool | Description |
+|------|-------------|
+| `constraint_snap` | Snap pitch to the Eisenstein A₂ lattice |
+| `constraint_funnel` | Gravitational pull toward a target constraint |
+| `constraint_diagnose` | 4-order Goodman diagnostic for constraint health |
+| `constraint_generate` | Generate music in a given mode + terrain |
+| `constraint_render` | Render notes to WAV audio |
+| `constraint_terrain_list` | List available musical terrains |
 
-Clients using older plugin versions will continue to function. However, the billing and usage experience may not be optimal and may not accurately reflect the latest usage-based billing experience.
+The MCP server is discovered automatically via `ConstraintMcpProvider` (implements `IMcpRegistrationProvider`). It locates the `constraint-mcp-server` Python package on `PYTHONPATH` and connects via stdio JSON-RPC. If the server is not found, the plugin degrades gracefully — Copilot simply won't show those tools.
 
+### Multi-Model BYOK Routing (`MULTI-MODEL-DESIGN.md`)
 
-## Getting access to GitHub Copilot
+An architecture for routing code completions and chat requests to different AI models based on "constraint terrain" complexity:
 
-Sign up for [GitHub Copilot Free](https://github.com/settings/copilot?utm_source=vscode-chat-readme&utm_medium=second&utm_campaign=2025mar-em-MSFT-signup), or request access from your enterprise admin.
+- **Shallow terrain** (single-line completion, no context) → budget models (GLM-4-Flash, DeepSeek-Lite)
+- **Mid terrain** (multi-line, file context) → standard models (DeepSeek-V3, GLM-4)
+- **Deep terrain** (chat with tools, reasoning) → premium models (GPT-4o, Claude 3.5)
+- **Abyssal terrain** (agent mode, multi-file) → flagship models (Claude 3.5 Sonnet, o3)
 
-To use GitHub Copilot, an active subscription is required. Learn more about business and individual plans at [github.com/features/copilot](https://github.com/features/copilot?utm_source=vscode-chat&utm_medium=readme&utm_campaign=2025mar-em-MSFT-signup).
+See [`MULTI-MODEL-DESIGN.md`](MULTI-MODEL-DESIGN.md) for the full design document.
+
+## Core Capabilities (from upstream)
+
+- **Code completions** — Inline ghost-text suggestions as you type
+- **Next Edit Suggestions** — Predict your next edit location and propose changes
+- **Agent Mode** — Autonomous project-aware assistance with tool calling
+- **Ask Mode** — Conversational AI for explanations, refactors, debugging
+- **MCP integration** — Connect Copilot with external tools and services
+- **Custom Agents, Subagents, Plan Agent** — Advanced agentic workflows
+- **BYOK (Bring Your Own Key)** — Use your own API keys for Azure, OpenAI, Gemini, Groq, OpenRouter, Anthropic
 
 ## Prerequisites
 
 - [Eclipse IDE](https://www.eclipse.org/downloads/)
-- An active [GitHub Copilot subscription](https://github.com/features/copilot)
+- Java 17+ (Bundle-RequiredExecutionEnvironment: JavaSE-17)
+- Active [GitHub Copilot subscription](https://github.com/features/copilot)
+- Python 3.10+ (for Constraint Theory MCP tools — optional)
 
-## Install and set up
+## Install
 
-### Option 1: Eclipse Marketplace
+### Eclipse Marketplace
 
-1. Open [Eclipse Marketplace](https://marketplace.eclipse.org/) and go to the [GitHub Copilot plugin page](https://marketplace.eclipse.org/content/github-copilot).
-2. Drag **Install** to your running Eclipse workspace.
-3. Restart Eclipse.
-4. Sign in to GitHub Copilot from Eclipse.
+1. Open [Eclipse Marketplace](https://marketplace.eclipse.org/) → [GitHub Copilot](https://marketplace.eclipse.org/content/github-copilot)
+2. Drag **Install** to your running Eclipse workspace
+3. Restart Eclipse
+4. Sign in to GitHub Copilot
 
-### Option 2: Install from update site
+### Update Site
 
-1. In Eclipse, open **Help → Install New Software…**
-2. Add this update site URL: `https://azuredownloads-g3ahgwb5b8bkbxhd.b01.azurefd.net/github-copilot/`
-3. Select **GitHub Copilot** and complete installation.
-4. Restart Eclipse and sign in.
+1. **Help → Install New Software…**
+2. Add update site: `https://azuredownloads-g3ahgwb5b8bkbxhd.b01.azurefd.net/github-copilot/`
+3. Select **GitHub Copilot**, complete installation, restart Eclipse
 
-## Core capabilities
+## Building from Source
 
-### Code completions
+```bash
+git clone https://github.com/SuperInstance/copilot-for-eclipse.git
+cd copilot-for-eclipse
+./mvnw clean verify
+```
 
-Inline suggestions (ghost text) appear as you type in the editor. Suggestions can range from small edits to multi-line changes.
+The build uses Maven + Tycho 4.0.13. Modules:
 
-### Next Edit Suggestions
+| Module | Description |
+|--------|-------------|
+| `com.microsoft.copilot.eclipse.core` | Core plugin: LSP client, completion, chat, BYOK, persistence |
+| `com.microsoft.copilot.eclipse.ui` | UI layer: chat view, inline completion, model picker, preferences |
+| `com.microsoft.copilot.eclipse.ui.terminal` | Terminal integration |
+| `com.superinstance.constraint.copilot` | Constraint Theory MCP registration |
+| `com.superinstance.constraint.feature` | Feature packaging for the constraint plugin |
+| `com.microsoft.copilot.eclipse.core.agent.*` | Platform-specific Copilot agent binaries |
 
-Next Edit Suggestions predict your next edit location and propose the next change based on your recent edits and context.
+## Project Structure
 
-### Agent and Ask Mode
+```
+com.microsoft.copilot.eclipse.core/src/
+├── lsp/                  # LSP client + protocol types
+│   ├── CopilotLanguageClient.java
+│   └── protocol/         # BYOK, quota, conversation, coding-agent types
+├── completion/           # Inline completion provider + suggestion management
+├── chat/                 # Chat modes (Ask, Agent), custom modes, MCP config
+├── nes/                  # Next Edit Suggestion provider
+├── persistence/          # Conversation serialization (XML-based)
+├── format/               # Language-specific formatting (Java, CDT)
+└── IdeCapabilities.java  # IDE feature detection
 
-**Ask Mode** provides conversational AI assistance for explaining code, generating code from requirements, suggesting refactors, and providing debugging guidance.
+com.superinstance.constraint.copilot/src/
+└── ConstraintMcpProvider.java  # MCP server discovery + registration
+```
 
-**Agent Mode** works autonomously across your project context to identify and fix issues, propose implementation steps, and support larger coding tasks with iterative guidance.
+## Configuration
 
-### Model Context Protocol (MCP)
+### Constraint Theory MCP
 
-MCP support enables integrating external tools and services into Copilot workflows where configured.
+Set the workspace path where the constraint ecosystem lives:
 
-### Advanced Agentic Capabilities
+```bash
+# Option 1: JVM system property
+-Dconstraint.workspace=/path/to/constraint-ecosystem
 
-- **Custom Agents** allow users to create personalized agents with specific instructions and behaviors.
-- **Isolated Subagents** can be spawned by the main agent to handle specific tasks or contexts independently.
-- **Plan Agent** can generate multi-step plans to accomplish complex tasks, breaking them down into manageable actions.
-- **Skills** are reusable, specialized AI assistant templates that enrich chat context in Agent Mode. Skills are defined as `SKILL.md` files and can be scoped to a workspace or shared globally.
+# Option 2: Environment variable
+export CONSTRAINT_WORKSPACE=/path/to/constraint-ecosystem
 
-  - Creating Skills
+# Option 3: Default fallback
+~/superinstance-workspace
+```
 
-    Place a `SKILL.md` file in any of these directories:
+The `constraint-mcp-server` Python package must be on `PYTHONPATH` within that workspace.
 
-    - **Project-scoped:** `.github/skills/<skill-name>/`, `.claude/skills/<skill-name>/`, `.agents/skills/<skill-name>/`
-    - **User-scoped (global):** `~/.copilot/skills/<skill-name>/`, `~/.claude/skills/<skill-name>/`, `~/.agents/skills/<skill-name>/`
+### Multi-Model Routing
 
-    Each `SKILL.md` file can include YAML front matter with metadata (name, description) followed by Markdown content that provides domain knowledge, workflows, or instructions for the AI assistant.
+See [`MULTI-MODEL-DESIGN.md`](MULTI-MODEL-DESIGN.md) for the full routing configuration format (`model-routing.json`).
 
-    Skills are automatically discovered and available in Agent Mode. You can enable or disable skills in **Window → Preferences → Copilot → Chat → Enable Skills**.
+## Related Repos
 
-For other available features in Eclipse, see the [Copilot feature matrix](https://docs.github.com/en/copilot/reference/copilot-feature-matrix?tool=eclipse).
+- [constraint-theory-core](https://github.com/SuperInstance/constraint-theory-core) — Mathematical primitives for the constraint ecosystem
+- [snapkit-v2](https://github.com/SuperInstance/snapkit-v2) — Eisenstein lattice snap (Python)
+- [snapkit-js](https://github.com/SuperInstance/snapkit-js) — Eisenstein lattice snap (JS/TS)
+- [style-dna](https://github.com/SuperInstance/style-dna) — Musical DNA extraction and style morphing
 
-## Privacy and responsible use
+## Upstream
 
-We follow responsible practices in accordance with our
-[Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement).
-
-To get the latest security fixes, please use the latest version of GitHub Copilot for Eclipse.
-
-## Data and telemetry
-
-The GitHub Copilot for Eclipse plugin collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy statement](https://privacy.microsoft.com/privacystatement) to learn more.
-
-## Security
-
-Please do not report security vulnerabilities in public issues.
-
-See [SECURITY.md](SECURITY.md) for vulnerability reporting instructions.
-
-## Support
-
-For bug reports and feature requests, use this repository’s Issues.
-
-For support guidance, see [SUPPORT.md](SUPPORT.md).
-
-## Contributing
-
-This project welcomes contributions and suggestions. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started, build the project, submit pull requests, and follow our code style guidelines.
-
-Most contributions require you to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit [Contributor License Agreements](https://cla.opensource.microsoft.com).
-
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+This is a fork of [github/copilot-for-eclipse](https://github.com/microsoft/copilot-for-eclipse) (Apache 2.0 License).
 
 ## License
 
-Copyright (c) Microsoft Corporation. All rights reserved.
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Apache License 2.0
